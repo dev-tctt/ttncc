@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>QUẢN LÝ NHÀ CUNG CẤP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --bg: #e0f2fe;
+      --bg-2: #f0f9ff;
+      --card: #ffffff;
+      --border: #bae6fd;
+      --text: #0f172a;
+      --muted: #334155;
+      --primary: #0ea5e9;
+      --primary-dark: #0284c7;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --neutral: #64748b;
+      --mint: #ecfdf5;
+      --green: #16a34a;
+    }
+    body {
+      font-family: system-ui, Arial, sans-serif;
+      background: linear-gradient(180deg, var(--bg), var(--bg-2));
+      color: var(--text);
+      padding: 16px;
+      margin: 0;
+      display: block;
+    }
+    .wrap {
+      width: 100%;
+      max-width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(2, 132, 199, .10);
+      padding: 20px;
+      box-sizing: border-box;
+      min-height: calc(100vh - 32px);
+    }
+    h2 { margin: 0 0 10px; text-align: center; font-size: 26px; color: var(--primary-dark); }
+    /* Expanded grid: 6 fields + 2 buttons */
+    .grid { display: grid; grid-template-columns: 2.2fr 1.6fr 1.6fr 2fr 1.6fr 1.6fr 110px 110px; gap: 10px; }
+    @media (max-width: 1100px) { .grid { grid-template-columns: 1fr; } }
+    textarea, input[type="text"], input[type="search"] {
+      padding: 10px;
+      border-radius: 12px;          /* bo góc mềm hơn */
+      border: 2px solid #3d85c6;    /* viền đậm màu xanh */
+      background: #f0f8ff;          /* nền nhạt */
+      color: var(--text);
+      outline: none;
+      font-size: 14px;
+    }
+    textarea:focus, input[type="text"]:focus, input[type="search"]:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(14,165,233,.2);
+      background: #fff;
+    }
+    textarea { min-height: 42px; line-height: 1.4; resize: vertical; }
+    button { padding: 10px 12px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; }
+    .add { background: #22c55e; color: white; }
+    .add:hover { background: #16a34a; }
+    .wipe { background: #fbbf24; color: #b91c1c; }
+    .wipe:hover { background: #f59e0b; color: #7f1d1d; }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 14px 0 4px; }
+    .export { background: var(--primary); color: white; }
+    .template { background: #8b5cf6; color: white; }
+    .delete-all {
+      background: var(--danger); color: white; margin-left: auto;
+      font-size: 18px; line-height: 1;
+      width: 42px; height: 42px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 10px;
+    }
+    .searchbox { display:flex; gap:10px; align-items:center; background: var(--bg-2); padding:10px; border:1px solid var(--border); border-radius:12px; margin-top:10px;}
+    .searchbox button { background:#e2e8f0; color:#0f172a; border:1px solid var(--border); }
+    .searchbox label { font-weight:700; color: var(--muted); }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #fff; table-layout: fixed; }
+    th, td { border: 1px solid var(--border); padding: 10px; text-align: left; vertical-align: top; }
+    th { background: #3d85c6; color: #ffffff; text-align: center; }
+    tr:nth-child(even) { background: #f8fdff; }
+    table th:nth-child(1), table td:nth-child(1) { text-align: center; }
+    .actions { display: flex; gap: 8px; }
+    .edit { background: var(--neutral); color: white; font-size: 16px; }
+    .del { background: var(--danger); color: white; font-size: 16px; }
+    a.link {
+      color: var(--primary-dark);
+      text-decoration: underline;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      white-space: normal;
+      display:block;
+    }
+    #status { display: none; background: #fff7ed; color: #9a3412; border:1px solid #fed7aa; padding: 10px; border-radius: 10px; font-size: 13px; margin-top:10px; }
+    label.file { display: inline-flex; align-items: center; gap: 8px; background: var(--warning); color: #111827; padding: 10px 12px; border-radius: 10px; cursor: pointer; font-weight: 700; }
+    label.file input { display: none; }
+    .actions button[title], #addBtn[title], .delete-all[title] { position: relative; }
+    .actions button[title]:hover::after, #addBtn[title]:hover::after, .delete-all[title]:hover::after {
+      content: attr(title);
+      position: absolute;
+      bottom: 110%; left: 50%; transform: translateX(-50%);
+      background: #0f172a; color: #fff; padding: 4px 8px; border-radius: 6px; font-size: 12px; white-space: nowrap; opacity: .9;
+    }
+    .meta { display:flex; justify-content: space-between; align-items:center; gap:10px; margin-top:10px; color: var(--muted); font-size:13px; }
+    .toggle { display:inline-flex; align-items:center; gap:8px; background:#f1f5f9; border:1px solid var(--border); padding:6px 10px; border-radius:999px; font-size:13px; color:#334155; cursor:pointer; }
+    .toggle input { accent-color: var(--primary); }
+
+    .topbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin-bottom:8px;}
+    .topbar h2{grid-column:2;justify-self:center;text-align:center;}
+    .lock{grid-column:3;justify-self:end;display:inline-flex;gap:8px;align-items:center;background:#f1f5f9;border:1px solid var(--border);padding:6px 10px;border-radius:999px;font-size:13px;color:#334155;}
+    .lock .btn{height:28px;width:34px;padding:0;border-radius:999px}
+    .lock .btn[disabled]{opacity:.5;cursor:not-allowed}
+    .locked-actions .edit,.locked-actions .del{opacity:.35;pointer-events:none;}
+    .row .lock{ margin-left: 8px; }
+    .row .lock.unlocked { background: #dcfce7; border-color: #86efac; color: #065f46; box-shadow: 0 0 0 3px rgba(16,185,129,.18); }
+    .row .lock{ position: static !important; display: inline-flex !important; gap: 8px; align-items: center; background: #f1f5f9; border: 1px solid var(--border); padding: 6px 10px; border-radius: 999px; font-size: 13px; color: #334155; }
+    .row .lock .btn{ height: 28px; width: 34px; padding: 0; border-radius: 999px; }
+
+    /* Row style when Tên NCC is plain text (not a URL) */
+    tr.plain-row { background: #e6f6ff !important; }
+    td.actions { background: var(--mint) !important; display:flex; justify-content:center; align-items:center; gap:6px; padding:4px !important; }
+
+    /* Wrap long text for some columns */
+    table td:nth-child(2),
+    table td:nth-child(5),
+    table td:nth-child(7) {
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <h2 id="title">QUẢN LÝ NHÀ CUNG CẤP</h2>
+      <div class="lock" id="lockBox">
+        <button class="btn gray" id="unlockBtn" onclick="unlock()" title="Mở khóa">🔐</button>
+        <button class="btn gray" id="lockBtn" onclick="lock()" title="Khóa">🔒</button>
+      </div>
+    </div>
+
+    <!-- INPUT FORM -->
+    <div class="grid">
+      <input id="noidung" type="text" placeholder="Tên Nhà Cung Cấp..." />
+      <input id="note" type="text" placeholder="Người Liên Hệ" />
+      <input id="time" type="text" placeholder="Số điện thoại" />
+      <input id="address" type="text" placeholder="Địa chỉ" />
+      <input id="category" type="text" placeholder="Loại nhà cung cấp" />
+      <input id="note2" type="text" placeholder="Ghi chú" />
+      <button id="addBtn" class="add" onclick="addItem()" title="Thêm mới">➕</button>
+      <button class="wipe" onclick="resetForm()" title="Xóa form">⌫</button>
+    </div>
+
+    <div class="row">
+      <button class="export" onclick="exportExcel()">Xuất Excel (.xlsx)</button>
+      <label class="file">
+        Nhập Excel
+        <input id="importXLSX" type="file" accept=".xlsx,.xls" onchange="importExcel(event)" />
+      </label>
+      <button class="template" onclick="downloadExcelTemplate()">Tải file mẫu Excel</button>
+      <button class="delete-all" onclick="clearAll()" title="Xóa tất cả">💣</button>
+      <span id="reverseToggle" data-tooltip="Sắp xếp" style="position:relative;display:inline-flex;align-items:center;justify-content:center;width:42px;min-width:42px;height:42px;background:#22c55e;color:#ffffff;border:1px solid #16a34a;border-radius:6px;font-size:18px;line-height:1;cursor:pointer;user-select:none;box-shadow:0 1px 0 rgba(0,0,0,.05);">⬆⬇</span>
+    </div>
+
+    <div class="searchbox">
+      <label for="search">🔎 Tìm kiếm</label>
+      <input id="search" type="search" placeholder="Tìm theo Tên NCC/Người liên hệ/Số điện thoại/Địa chỉ/Loại/Ghi chú..." oninput="onSearchInput(this.value)" />
+    </div>
+
+    <div id="status"></div>
+
+    <table id="mainTable">
+      <colgroup>
+        <col style="width:60px" />
+        <col style="width:18%" />
+        <col style="width:14%" />
+        <col style="width:12%" />
+        <col style="width:18%" />
+        <col style="width:14%" />
+        <col style="width:16%" />
+        <col style="width:110px" />
+      </colgroup>
+      <thead>
+        <tr>
+          <th>STT</th>
+          <th>Tên Nhà Cung Cấp</th>
+          <th>Người Liên Hệ</th>
+          <th>Số điện thoại</th>
+          <th>Địa chỉ</th>
+          <th>Loại nhà cung cấp</th>
+          <th>Ghi chú</th>
+          <th>Chức năng</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+
+    <div class="meta">
+      <div id="countInfo">Hiển thị 0 mục</div>
+      <div></div>
+    </div>
+  </div>
+
+  <!-- Password Modal -->
+  <div id="passwordBackdrop" class="modal-backdrop" aria-hidden="true" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);align-items:center;justify-content:center;z-index:9999;">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="pwTitle" style="background:#fff;padding:20px;border-radius:14px;min-width:320px;max-width:92vw;box-shadow:0 10px 30px rgba(0,0,0,.2)">
+      <h3 id="pwTitle" style="margin:0 0 10px;font-size:18px;color:#0f172a;">Nhập mật khẩu</h3>
+      <div class="field" style="display:flex;flex-direction:column;gap:6px;margin:8px 0;">
+        <label for="pwInput" id="pwLabel">Mật khẩu</label>
+        <input id="pwInput" type="password" autocomplete="current-password" placeholder="••••••" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;outline:none;" />
+      </div>
+      <div class="field" id="confirmField" style="display:none;flex-direction:column;gap:6px;margin:8px 0;">
+        <label for="pwConfirm">Nhập lại mật khẩu</label>
+        <input id="pwConfirm" type="password" autocomplete="new-password" placeholder="••••••" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:10px;outline:none;" />
+      </div>
+      <div class="actions" style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">
+        <button id="pwCancel">Hủy</button>
+        <button id="pwOk" class="btn-primary" style="background:var(--primary);color:#fff;">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"
+          onload="sheetReady(true)" onerror="sheetReady(false)"></script>
+
+  <script>
+  // ====== Utilities (textarea auto-resize) ======
+  (function(){
+    function autoResize(el){ if(!el) return; el.style.height='auto'; el.style.height=Math.min(el.scrollHeight, 260)+'px'; }
+    const nameEl = document.getElementById('noidung');
+    if (nameEl) {
+      nameEl.addEventListener('input', e => autoResize(e.target));
+      setTimeout(()=>autoResize(nameEl), 0);
+    }
+    const _resetForm = window.resetForm;
+    window.resetForm = function(){ if(_resetForm) _resetForm(); const el=document.getElementById('noidung'); if(el) autoResize(el); };
+    const _editRow = window.editRow;
+    window.editRow = function(i){ if(_editRow) _editRow(i); const el=document.getElementById('noidung'); if(el) autoResize(el); };
+  })();
+
+  // ====== Password Modal helper ======
+  const PasswordModal = (function(){
+    const backdrop = document.getElementById('passwordBackdrop');
+    const input = document.getElementById('pwInput');
+    const confirmField = document.getElementById('confirmField');
+    const confirmInput = document.getElementById('pwConfirm');
+    const btnOk = document.getElementById('pwOk');
+    const btnCancel = document.getElementById('pwCancel');
+    const title = document.getElementById('pwTitle');
+    const label = document.getElementById('pwLabel');
+
+    let resolver = null;
+    let withConfirm = false;
+
+    function open(opts={}){
+      withConfirm = !!opts.withConfirm;
+      title.textContent = opts.title || 'Nhập mật khẩu';
+      label.textContent = opts.label || 'Mật khẩu';
+      input.value = '';
+      confirmInput.value = '';
+      confirmField.style.display = withConfirm ? '' : 'none';
+      backdrop.style.display = 'flex';
+      backdrop.setAttribute('aria-hidden','false');
+      setTimeout(()=>input.focus(), 0);
+      return new Promise((resolve)=>{ resolver = resolve; });
+    }
+    function close(result){
+      backdrop.style.display = 'none';
+      backdrop.setAttribute('aria-hidden','true');
+      const out = result===true ? (withConfirm ? {pass: input.value, confirm: confirmInput.value} : {pass: input.value}) : null;
+      if(resolver){ resolver(out); resolver = null; }
+    }
+
+    btnOk.addEventListener('click', ()=> close(true));
+    btnCancel.addEventListener('click', ()=> close(false));
+    backdrop.addEventListener('click', (e)=>{ if(e.target === backdrop) close(false); });
+    backdrop.addEventListener('keydown', (e)=>{
+      if(e.key === 'Escape'){ e.preventDefault(); close(false); }
+      if(e.key === 'Enter'){ e.preventDefault(); btnOk.click(); }
+    });
+
+    return { open };
+  })();
+
+  // ====== Lock state (admin) ======
+  const PASS_KEY = 'links_admin_pass_v1';
+  const DEFAULT_ADMIN_PASS = 'coichungchocan'; // mặc định
+  let ADMIN_PASS = localStorage.getItem(PASS_KEY) || '';
+  let UNLOCKED = sessionStorage.getItem('links_unlocked') === '1';
+
+  function refreshLockUI(){
+    const table=document.getElementById('mainTable');
+    if(table){ if(!UNLOCKED) table.classList.add('locked-actions'); else table.classList.remove('locked-actions'); }
+    const unlockBtn = document.getElementById('unlockBtn');
+    const lockBtn = document.getElementById('lockBtn');
+    if(unlockBtn) unlockBtn.disabled = UNLOCKED;
+    if(lockBtn) lockBtn.disabled = !UNLOCKED;
+    const box = document.getElementById('lockBox');
+    if(box){ if(UNLOCKED) box.classList.add('unlocked'); else box.classList.remove('unlocked'); }
+  }
+
+  async function unlock(){
+    const need = ADMIN_PASS || DEFAULT_ADMIN_PASS;
+    const res = await PasswordModal.open({ title: 'Mở khóa', label: 'Nhập mật khẩu' });
+    if(!res) return;
+    if(res.pass === need){
+      UNLOCKED = true;
+      sessionStorage.setItem('links_unlocked','1');
+      refreshLockUI();
+      alert('Đã mở khóa.');
+    } else {
+      alert('Sai mật khẩu.');
+    }
+  }
+
+  function lock(){
+    UNLOCKED = false;
+    sessionStorage.removeItem('links_unlocked');
+    refreshLockUI();
+  }
+
+  // ====== Data storage & table actions ======
+  let rows = JSON.parse(localStorage.getItem('nha_cung_cap')) || [];
+
+  function cleanRows(list){
+    if (!Array.isArray(list)) return [];
+    return list.map(r => {
+      if (r && typeof r === 'object') {
+        if (r.link && !r.noidung) r.noidung = r.link; // legacy
+        // coerce possible element to string
+        if (r.noidung && typeof r.noidung !== 'string') {
+          try {
+            if (typeof r.noidung.value === 'string' && r.noidung.value) r.noidung = String(r.noidung.value);
+            else if (typeof r.noidung.textContent === 'string') r.noidung = String(r.noidung.textContent);
+            else r.noidung = String(r.noidung);
+          } catch(e){ r.noidung = String(r.noidung); }
+        }
+        if (r.note && typeof r.note !== 'string') r.note = String(r.note);
+        if (r.time && typeof r.time !== 'string') r.time = String(r.time);
+        // add new fields defaults
+        if (!('address' in r)) r.address = '';
+        if (!('category' in r)) r.category = '';
+        if (!('note2' in r)) r.note2 = '';
+      } else {
+        r = { noidung:'', note:'', time:'', address:'', category:'', note2:'' };
+      }
+      return r;
+    });
+  }
+  rows = cleanRows(rows);
+
+  let editing = -1;
+  const REVERSE_KEY = 'links_reverse_order_v1';
+  let REVERSE = localStorage.getItem(REVERSE_KEY) === '1';
+
+  function isLikelyURL(s){
+    if(!s || typeof s !== 'string') return false;
+    return /^(https?:\/\/|www\.)/i.test(s.trim());
+  }
+
+  let q = '';
+
+  function normalize(v){ return (v||'').toString().toLowerCase(); }
+
+  function filteredRows() {
+    let data = rows;
+    if (q) {
+      const k = normalize(q);
+      data = data.filter(r =>
+        normalize(r.noidung).includes(k) ||
+        normalize(r.note).includes(k) ||
+        normalize(r.time).includes(k) ||
+        normalize(r.address).includes(k) ||
+        normalize(r.category).includes(k) ||
+        normalize(r.note2).includes(k)
+      );
+    }
+    return data;
+  }
+
+  function setReverseVisual(){
+    const rev = document.getElementById('reverseToggle');
+    if(!rev) return;
+    rev.style.opacity = REVERSE ? '1' : '0.7';
+    rev.setAttribute('aria-pressed', REVERSE ? 'true' : 'false');
+  }
+
+  function render() {
+    rows = cleanRows(rows);
+    const tb = document.getElementById('tbody');
+    tb.innerHTML = '';
+    let fr = filteredRows();
+    if (REVERSE) fr = [...fr].reverse();
+    fr.forEach((r, idx) => {
+      const tr = document.createElement('tr');
+      if (!isLikelyURL(r.noidung)) { tr.classList.add('plain-row'); }
+      tr.innerHTML = `
+        <td>${idx+1}</td>
+        <td>${r.noidung ? (isLikelyURL(r.noidung) ? `<a class="link" href="${r.noidung.startsWith('http')?r.noidung:'https://'+r.noidung}" target="_blank" rel="noopener">${r.noidung}</a>` : r.noidung) : ''}</td>
+        <td>${r.note || ''}</td>
+        <td>${r.time || ''}</td>
+        <td>${r.address || ''}</td>
+        <td>${r.category || ''}</td>
+        <td>${r.note2 || ''}</td>
+        <td class="actions">
+          <button class="edit" onclick="editRow(${rows.indexOf(r)})" title="Sửa">✏️</button>
+          <button class="del" onclick="delRow(${rows.indexOf(r)})" title="Xóa">🗑️</button>
+        </td>`;
+      tb.appendChild(tr);
+    });
+    document.getElementById('countInfo').innerText = `Hiển thị ${fr.length} / ${rows.length} mục`;
+    refreshLockUI();
+    setReverseVisual();
+  }
+
+  function addItem(){
+    const noidung = document.getElementById('noidung').value.trim();
+    const note    = document.getElementById('note').value.trim();
+    const time    = document.getElementById('time').value.trim(); // phone (free text)
+    const address = document.getElementById('address').value.trim();
+    const category= document.getElementById('category').value.trim();
+    const note2   = document.getElementById('note2').value.trim();
+    if (!noidung) return alert('Vui lòng nhập Tên Nhà Cung Cấp');
+    if (editing !== -1 && !UNLOCKED) { alert('Tính năng này đang khóa. Bấm 🔐 và nhập mật khẩu.'); return; }
+
+    if (editing === -1) rows.unshift({ noidung, note, time, address, category, note2 });
+    else {
+      rows[editing] = { noidung, note, time, address, category, note2 };
+      editing = -1;
+      const btn = document.getElementById('addBtn');
+      btn.innerText = '➕';
+      btn.title = 'Thêm mới';
+    }
+    save(); render(); resetForm();
+  }
+
+  function editRow(i){
+    if(!UNLOCKED){ alert('Tính năng này đang khóa. Bấm 🔐 và nhập mật khẩu.'); return; }
+    const r = rows[i] || {};
+    document.getElementById('noidung').value = r.noidung || '';
+    document.getElementById('note').value    = r.note || '';
+    document.getElementById('time').value    = r.time || '';
+    document.getElementById('address').value = r.address || '';
+    document.getElementById('category').value= r.category || '';
+    document.getElementById('note2').value   = r.note2 || '';
+    editing = i;
+    const btn = document.getElementById('addBtn');
+    btn.innerText = '🔄';
+    btn.title = 'Cập nhật';
+    document.getElementById('note').focus();
+  }
+
+  function delRow(i){
+    if(!UNLOCKED){ alert('Tính năng này đang khóa. Bấm 🔐 và nhập mật khẩu.'); return; }
+    if (!confirm('Xóa mục này?')) return;
+    rows.splice(i,1); save(); render();
+    if (editing === i) resetForm();
+  }
+
+  function resetForm() {
+    document.getElementById('noidung').value = '';
+    document.getElementById('note').value = '';
+    document.getElementById('time').value = '';
+    document.getElementById('address').value = '';
+    document.getElementById('category').value = '';
+    document.getElementById('note2').value = '';
+    editing = -1;
+    const btn = document.getElementById('addBtn');
+    btn.innerText = '➕';
+    btn.title = 'Thêm mới';
+  }
+
+  function clearAll(){
+    if(!UNLOCKED){ alert('Tính năng này đang khóa. Bấm 🔐 và nhập mật khẩu.'); return; }
+    if (!confirm('Xóa toàn bộ dữ liệu?')) return;
+    rows = []; save(); render(); resetForm();
+  }
+
+  function onSearchInput(val) { q = val || ''; render(); }
+
+  function save() { rows = cleanRows(rows); localStorage.setItem('nha_cung_cap', JSON.stringify(rows)); }
+
+  function sheetReady(ok) {
+    const st = document.getElementById('status');
+    if (!ok || typeof XLSX === 'undefined') {
+      st.style.display = 'block';
+      st.innerHTML = '<b>Lưu ý:</b> Không tải được thư viện Excel qua CDN. Kiểm tra Internet hoặc thử lại sau.';
+    } else {
+      st.style.display = 'none';
+    }
+  }
+
+  function headersForExport(){ 
+    return ['Tên Nhà Cung Cấp','Người Liên Hệ','Số điện thoại','Địa chỉ','Loại nhà cung cấp','Ghi chú'];
+  }
+
+  function exportExcel() {
+    if (typeof XLSX === 'undefined') return alert('Chưa sẵn sàng thư viện Excel (CDN).');
+    const wb = XLSX.utils.book_new();
+    const src = filteredRows();
+    const aoa = [ headersForExport(), ...src.map(r => [
+      r.noidung || '', r.note || '', r.time || '', r.address || '', r.category || '', r.note2 || ''
+    ])];
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    XLSX.utils.book_append_sheet(wb, ws, 'Suppliers');
+    XLSX.writeFile(wb, 'nha_cung_cap.xlsx');
+  }
+
+  function downloadExcelTemplate() {
+    if (typeof XLSX === 'undefined') return alert('Chưa sẵn sàng thư viện Excel (CDN).');
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet([
+      headersForExport(),
+      ['Công ty ABC', 'Anh Bình', '0909 000 000', '123 Lý Thường Kiệt, Q.10', 'Vật tư xây dựng', 'Khách thân thiết']
+    ]);
+    XLSX.utils.book_append_sheet(wb, ws, 'Template');
+    XLSX.writeFile(wb, 'mau_nha_cung_cap.xlsx');
+  }
+
+  // Import: try to detect both new headers and legacy ones
+  function importExcel(ev) {
+    if (typeof XLSX === 'undefined') { ev.target.value=''; return alert('Chưa sẵn sàng thư viện Excel (CDN).'); }
+    const f = ev.target.files[0]; if (!f) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type:'array' });
+      const sh = wb.SheetNames[0];
+      const ws = wb.Sheets[sh];
+      const arr = XLSX.utils.sheet_to_json(ws, { header:1, raw:true });
+      if (!arr || !arr.length) return alert('Không đọc được dữ liệu trong file.');
+
+      let start = 0;
+      let h = (arr[0] || []).map(v => (v==null?'':String(v)).trim().toLowerCase());
+
+      // Default indices (legacy 3 columns)
+      let idxName = 0, idxContact = 1, idxPhone = 2, idxAddr = 3, idxCat = 4, idxNote2 = 5;
+
+      const isHeader = h.length && (
+        h.some(s => s.includes('tên') || s.includes('nội dung') || s.includes('ten') || s.includes('content') || s.includes('link')) ||
+        h.some(s => s.includes('người liên hệ') || s.includes('ghi chú') || s.includes('contact') || s.includes('note'))
+      );
+
+      if (isHeader) {
+        start = 1;
+        // name
+        idxName = h.findIndex(s => s.includes('tên nhà cung') || s.includes('ten nha cung') || s.includes('nội') || s.includes('content') || s.includes('link'));
+        if (idxName < 0) idxName = 0;
+        // contact
+        idxContact = h.findIndex(s => s.includes('người liên hệ') || s.includes('nguoi lien he') || s.includes('ghi chú') || s.includes('note'));
+        if (idxContact < 0) idxContact = 1;
+        // phone
+        idxPhone = h.findIndex(s => s.includes('điện thoại') || s.includes('dien thoai') || s.includes('số điện') || s.includes('so dien'));
+        if (idxPhone < 0) {
+          // legacy 'thời gian'
+          idxPhone = h.findIndex(s => s.includes('thời gian') || s.includes('thoi gian') || s.includes('time') || s.includes('ngày') || s.includes('date'));
+          if (idxPhone < 0) idxPhone = 2;
+        }
+        // address
+        idxAddr = h.findIndex(s => s.includes('địa chỉ') || s.includes('dia chi') || s.includes('address'));
+        // category
+        idxCat = h.findIndex(s => s.includes('loại nhà cung') || s.includes('loai nha cung') || s.includes('category') || s.includes('loại'));
+        // note2
+        idxNote2 = h.findIndex(s => s === 'ghi chú' || s.includes('ghi chú') || s.includes('ghi chu') || s === 'ghi chu' );
+      }
+
+      function cellToString(v){
+        if (v == null) return '';
+        if (typeof v === 'string') return v.trim();
+        if (typeof v === 'number') return String(v);
+        if (typeof v === 'boolean') return v ? 'true' : 'false';
+        try { return String(v); } catch(e){ return ''; }
+      }
+
+      let added = 0;
+      const staged = [];
+      for (let i = start; i < arr.length; i++) {
+        const row = arr[i]; if (!row) continue;
+        const noidung = cellToString(row[idxName]);
+        const note    = cellToString(row[idxContact]);
+        const time    = cellToString(row[idxPhone]);
+        const address = cellToString(row[idxAddr]);
+        const category= cellToString(row[idxCat]);
+        const note2   = cellToString(row[idxNote2]);
+        if (noidung) staged.push({ noidung, note, time, address, category, note2 });
+      }
+      if (staged.length) {
+        for (let i = staged.length - 1; i >= 0; i--) {
+          rows.unshift(staged[i]);
+          added++;
+        }
+      }
+      if (!added) alert('Không có hàng hợp lệ để nhập.');
+      rows = cleanRows(rows); save(); render(); ev.target.value='';
+    };
+    reader.readAsArrayBuffer(f);
+  }
+
+  // Reverse toggle
+  (function(){
+    function bindReverse(){
+      var rev = document.getElementById('reverseToggle');
+      if(!rev) return;
+      if (!rev._boundReverse) {
+        rev.addEventListener('click', function(){
+          REVERSE = !REVERSE;
+          try { localStorage.setItem('links_reverse_order_v1', REVERSE ? '1' : '0'); } catch(e){}
+          render();
+        });
+        rev._boundReverse = true;
+      }
+      setReverseVisual();
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bindReverse);
+    } else { bindReverse(); }
+    setTimeout(bindReverse, 500);
+  })();
+
+  document.addEventListener('DOMContentLoaded', ()=>{
+    document.getElementById('title')?.addEventListener('dblclick', ()=> alert('Nhấn Ctrl+Alt+P để đổi mật khẩu')); // hint
+    refreshLockUI();
+  });
+
+  </script>
+</body>
+</html>
